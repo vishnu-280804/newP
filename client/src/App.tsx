@@ -2,12 +2,14 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CustomerDashboard from './pages/CustomerDashboard';
 import LaborerDashboard from './pages/LaborerDashboard';
 import RequestDetails from './pages/RequestDetails';
 import ProfilePage from './pages/ProfilePage';
+import MapTest from './pages/MapTest';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,12 +37,13 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
-        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
+        <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" replace />} />
         
         {/* Protected routes */}
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Layout>
@@ -72,8 +75,11 @@ const App: React.FC = () => {
           }
         />
         
+        {/* Test route */}
+        <Route path="/map-test" element={<MapTest />} />
+        
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>
   );

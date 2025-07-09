@@ -116,45 +116,85 @@ class ApiService {
         return;
       }
 
-      const options = {
+      // First try with high accuracy
+      const highAccuracyOptions = {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0
       };
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('Location obtained:', {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          });
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          let errorMessage = 'Unable to retrieve your location';
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location access denied. Please enable location permissions.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out. Please try again.';
-              break;
-          }
-          
-          reject(new Error(errorMessage));
-        },
-        options
-      );
+      // Fallback options with lower accuracy but faster response
+      const fallbackOptions = {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minutes
+      };
+
+      const tryGetLocation = (options: PositionOptions, isFallback = false) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log(`Location obtained (${isFallback ? 'fallback' : 'high accuracy'}):`, {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+              timestamp: new Date(position.timestamp).toISOString()
+            });
+
+            // Validate coordinates
+            if (this.isValidCoordinates(position.coords.latitude, position.coords.longitude)) {
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+            } else {
+              reject(new Error('Invalid location coordinates received'));
+            }
+          },
+          (error) => {
+            console.error(`Geolocation error (${isFallback ? 'fallback' : 'high accuracy'}):`, error);
+            
+            if (!isFallback) {
+              // Try fallback with lower accuracy
+              console.log('Trying fallback location with lower accuracy...');
+              tryGetLocation(fallbackOptions, true);
+              return;
+            }
+
+            // Both attempts failed
+            let errorMessage = 'Unable to retrieve your location';
+            
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = 'Location access denied. Please enable location permissions in your browser settings and try again.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = 'Location information unavailable. Please check your GPS, network connection, or try again later.';
+                break;
+              case error.TIMEOUT:
+                errorMessage = 'Location request timed out. Please check your internet connection and try again.';
+                break;
+            }
+            
+            reject(new Error(errorMessage));
+          },
+          options
+        );
+      };
+
+      // Start with high accuracy attempt
+      tryGetLocation(highAccuracyOptions);
     });
+  }
+
+  // Validate coordinates
+  private isValidCoordinates(latitude: number, longitude: number): boolean {
+    return (
+      typeof latitude === 'number' &&
+      typeof longitude === 'number' &&
+      latitude >= -90 && latitude <= 90 &&
+      longitude >= -180 && longitude <= 180 &&
+      !isNaN(latitude) && !isNaN(longitude)
+    );
   }
 }
 
