@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import OlaMap from '../components/OlaMap';
+// @ts-ignore
+import CustomerMap from '../components/CustomerMap.jsx';
 import { MAPS_CONFIG } from '../config/maps';
 
 const MapTest: React.FC = () => {
@@ -60,12 +61,7 @@ const MapTest: React.FC = () => {
                 </div>
               </div>
               
-              <OlaMap
-                userLocation={userLocation}
-                laborers={laborers}
-                onLaborerSelect={handleLaborerSelect}
-                height="500px"
-              />
+              <CustomerMap />
             </div>
             
             <div>
@@ -132,8 +128,6 @@ const MapTest: React.FC = () => {
                     Debug Info
                   </label>
                   <div className="bg-gray-100 p-3 rounded text-xs">
-                    <p><strong>Window.OlaMaps:</strong> {window.OlaMaps ? '✅ Available' : '❌ Not available'}</p>
-                    <p><strong>Window.Google:</strong> {window.google ? '✅ Available' : '❌ Not available'}</p>
                     <p><strong>User Agent:</strong> {navigator.userAgent.substring(0, 50)}...</p>
                   </div>
                 </div>

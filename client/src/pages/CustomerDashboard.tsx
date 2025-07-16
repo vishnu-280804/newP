@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
-import OlaMap from '../components/OlaMap';
+// @ts-ignore
+import CustomerMap from '../components/CustomerMap.jsx';
 import LocationUpdater from '../components/LocationUpdater';
 import LocationDebugger from '../components/LocationDebugger';
 
@@ -27,7 +28,6 @@ const CustomerDashboard: React.FC = () => {
   const [selectedLaborer, setSelectedLaborer] = useState<Laborer | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showLocationDebugger, setShowLocationDebugger] = useState(false);
-  const [liveLocation, setLiveLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     loadNearbyLaborers();
@@ -38,10 +38,10 @@ const CustomerDashboard: React.FC = () => {
     if ('geolocation' in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (position) => {
-          setLiveLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          });
+          // setLiveLocation({
+          //   latitude: position.coords.latitude,
+          //   longitude: position.coords.longitude
+          // });
         },
         (error) => {
           console.log('Live location tracking error:', error);
@@ -113,7 +113,7 @@ const CustomerDashboard: React.FC = () => {
             </div>
             
             {/* Live Location Display */}
-            {liveLocation && (
+            {/* {liveLocation && (
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -125,7 +125,7 @@ const CustomerDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
         
@@ -205,12 +205,7 @@ const CustomerDashboard: React.FC = () => {
           </div>
         </div>
         <div className="p-6">
-          <OlaMap
-            userLocation={user!.location}
-            laborers={laborers}
-            onLaborerSelect={handleRequestLaborer}
-            height="600px"
-          />
+          <CustomerMap />
         </div>
       </div>
 
@@ -347,7 +342,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ laborer, onClose, onSuccess
     setError('');
 
     // Use user.location if available, otherwise use liveLocation
-    const location = user?.location || liveLocation;
+    const location = user?.location;
     if (!location || !location.latitude || !location.longitude) {
       setError('Your location is missing. Please update your location before sending a request.');
       setLoading(false);
